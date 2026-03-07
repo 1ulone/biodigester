@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "975496563699",
+    "firebase_url": "https://biodigester-38777-default-rtdb.firebaseio.com",
+    "project_id": "biodigester-38777",
+    "storage_bucket": "biodigester-38777.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:975496563699:android:6e5e2c43be421d40eae086",
+        "android_client_info": {
+          "package_name": "com.example.pbl_biodigester"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApAzm6Xd_dghtqTxbqY761x8SYDN6OPgA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
