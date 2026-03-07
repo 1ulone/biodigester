@@ -1,0 +1,52 @@
+bio-middleman/.env
+bio-middleman/env/
+bio-middleman/venv/
+bio-middleman/env3.*/
+bio-middleman/serviceAccountKey.json
+
+# Miscellaneous
+pbl_biodigester/*.class
+pbl_biodigester/*.log
+pbl_biodigester/*.pyc
+pbl_biodigester/*.swp
+pbl_biodigester/.DS_Store
+pbl_biodigester/.atom/
+pbl_biodigester/.build/
+pbl_biodigester/.buildlog/
+pbl_biodigester/.history
+pbl_biodigester/.svn/
+pbl_biodigester/.swiftpm/
+pbl_biodigester/migrate_working_dir/
+
+# IntelliJ related
+pbl_biodigester/*.iml
+pbl_biodigester/*.ipr
+pbl_biodigester/*.iws
+pbl_biodigester/.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+pbl_biodigester/**/doc/api/
+pbl_biodigester/**/ios/Flutter/.last_build_id
+pbl_biodigester/.dart_tool/
+pbl_biodigester/.flutter-plugins-dependencies
+pbl_biodigester/.pub-cache/
+pbl_biodigester/.pub/
+pbl_biodigester//build/
+pbl_biodigester//coverage/
+
+# Symbolication related
+pbl_biodigester/app.*.symbols
+
+
+# Obfuscation related
+pbl_biodigester/app.*.map.json
+
+# Android Studio will place build artifacts here
+pbl_biodigester/android/app/debug
+pbl_biodigester//android/app/profile
+pbl_biodigester//android/app/release
