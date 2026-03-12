@@ -6,14 +6,24 @@ from firebase_admin import credentials, db
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from datetime import datetime, timezone
+from fastapi_mqtt import FastMQTT, MQTTConfig
 
-# Initialize Firebase Realtime Database
 cred = credentials.Certificate(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "serviceAccountKey.json"))
 firebase_admin.initialize_app(cred, {
     'databaseURL': os.environ.get("FIREBASE_DB_URL")
 })
 
 app = FastAPI()
+
+mqtt_config = MQTTConfig(
+    host="mosquitto",
+    port=1883,
+    keepalive=60
+)
+mqtt = FastMQTT(config=mqtt_config)
+mqtt.init_app(app)
+
+latest_mqtt_data = {"status": "waiting for data"}
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
@@ -24,6 +34,22 @@ class BiodigesterData(BaseModel):
     pressure_kpa: float
     temperature_c: float
     ph_level: float
+
+@mqtt.on_connect()
+def connect(client, flags, rc, properties):
+    mqtt.client.subscribe("/biodigester/sensors")
+
+@mqtt.on_message()
+async def message(client, topic, payload, qos, properties):
+    global latest_mqtt_data
+    try:
+        latest_mqtt_data = json.loads(payload.decode())
+    except json.JSONDecodeError:
+        latest_mqtt_data = {"raw_data": payload.decode()}
+
+@app.get("/sensor-data")
+def read_sensor_data():
+    return latest_mqtt_data
 
 @app.post("/analyze")
 async def analyze_bot(data: BiodigesterData):
@@ -95,7 +121,6 @@ async def analyze_bot(data: BiodigesterData):
             "ai_analysis": analysis_json
         }
         
-        # Push to Realtime Database
         ref = db.reference("biodigester_logs")
         ref.push(final_payload)
         

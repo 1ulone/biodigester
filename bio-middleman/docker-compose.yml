@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mqtt_broker
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    restart: unless-stopped
+
+  fastapi_app:
+    build: .
+    container_name: fastapi_backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mosquitto
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - FIREBASE_DB_URL=${FIREBASE_DB_URL}
+    volumes:
+      - ./serviceAccountKey.json:/app/serviceAccountKey.json
+    restart: unless-stopped
