@@ -4,8 +4,8 @@
 #include <DallasTemperature.h>
 
 
-const char* ssid = "ULWIFI";
-const char* password = "ireng5656";
+const char* ssid = "your_ssid";
+const char* password = "your_pass";
 
 const char* mqtt_server = "10.93.55.46"; 
 const int mqtt_port = 1883;
