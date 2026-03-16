@@ -126,3 +126,6 @@ Bar sisa bahan bakar akan diperoleh dengan hanya menggunakan Sensor Tekanan, kit
     
 - 273.15 adalah konstanta konversi nol mutlak untuk Kelvin# biodigester
 Repo PBL Biodigester PPI Internal, dari Web Middleman sampai Aplikasi Monitoring berbasis Flutter
+
+# WIRING
+![Alt text](WIRING.png)
