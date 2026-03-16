@@ -129,3 +129,6 @@ Repo PBL Biodigester PPI Internal, dari Web Middleman sampai Aplikasi Monitoring
 
 # WIRING
 ![Alt text](WIRING.png)
+
+# SCHEMATICS
+![Alt text](SCHEMATIC.png)
