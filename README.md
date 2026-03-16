@@ -2,7 +2,7 @@
 Proyek IoT Smart Biodigester bertujuan utama untuk mengendalikan dan memantau operasional 
 alat biodigester secara terintegrasi melalui perangkat mobile. Sistem ini melacak berbagai parameter penting, mulai dari suhu, pH, tekanan, hingga kadar CH4, di mana data dari setiap sensor ditransmisikan menggunakan broker MQTT. Selain fungsionalitas pemantauan, Smart Biodigester ini juga dilengkapi dengan fitur analisis tingkat lanjut yang didukung oleh model AI _gpt-oss-120b_ melalui integrasi API GROQ.
 # Arsitektur
-![[biodigester.drawio.png|599]]
+![Alt text](biodigester.drawio.png)
 # Prerequisite
 1. Docker : https://docs.docker.com/engine/install/
 2. Flutter SDK : https://docs.flutter.dev/install
