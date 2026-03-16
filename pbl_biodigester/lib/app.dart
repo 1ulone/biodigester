@@ -40,16 +40,11 @@ class App extends StatelessWidget {
                     break;
 
                 case detailScreen:
-                    final args = settings.arguments as Map;
-                    final int id = (args['id'] as num).toInt();
-                    screen = DetailScreen(id);
+                    screen = DetailScreen();
                     break;
 
                 case answerScreen:
-                    final args = settings.arguments as Map;
-                    final String status = (args['status'] as String);
-                    final String diagnosis = (args['diagnosis'] as String);
-                    screen = AnswerScreen(status, diagnosis);
+                    screen = AnswerScreen();
                     break;
 
                 default:

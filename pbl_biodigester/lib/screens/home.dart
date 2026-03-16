@@ -2,8 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:kdgaugeview/kdgaugeview.dart';
 import 'package:pbl_biodigester/app.dart';
-import 'package:pbl_biodigester/app/database_service.dart';
-import 'package:firebase_database/firebase_database.dart';
+import 'package:pbl_biodigester/app/api_service.dart';
 import 'package:pbl_biodigester/models/card_rounded.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,52 +13,42 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+    final GlobalKey<KdGaugeViewState> _gaugeKey = GlobalKey<KdGaugeViewState>();
     final double defaultPadding = 16.0;
-    late StreamSubscription<DatabaseEvent> _subscription;
-
-    List<Map<String, dynamic>> logs = [];
-    bool isOn = false;
+    final ApiService _api = ApiService();
+    Timer? _timer;
+    double _fuel = 0.0;
+    String _aiStatus = "";
 
     @override
     void initState() {
-        super.initState();
-        _subscribeToData();
+      super.initState();
+      _fetchData();
+      // Call every 5 seconds
+      _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+        final fuel = await _api.fetchFuelStatus();
+        // final result = await _api.fetchAiAnalysis();
+
+        setState(() => _fuel = fuel);
+        _gaugeKey.currentState?.updateSpeed(
+            fuel, 
+            animate: true, 
+            duration: const Duration(milliseconds: 1000)
+        );
+      });
     }
 
-    void _subscribeToData() {
-        _subscription = FirebaseDatabase.instance
-            .ref('/biodigester_logs')
-            .orderByKey()
-            .limitToLast(1)
-            .onValue // This replaces .get()
-            .listen((event) {
-                final snapshot = event.snapshot;
-
-                if (!snapshot.exists || snapshot.value == null) {
-                    return;
-                }
-
-                // Firebase returns a Map of objects when using limitToLast
-                final Map<dynamic, dynamic> dataMap = snapshot.value as Map<dynamic, dynamic>;
-                final key = dataMap.keys.first;
-                final value = dataMap[key];
-
-                setState(() {
-                        logs = [{
-                        'hash_id': key.toString(),
-                        'timestamp': value['timestamp'],
-                        'input_data': Map<String, dynamic>.from(value['input_data']),
-                        'ai_analysis': Map<String, dynamic>.from(value['ai_analysis']),
-                    }];
-                });
-            });
-    }
-
+    // Call this from your custom button's onPressed
     @override
     void dispose() {
-        _subscription.cancel();
-        super.dispose();
+      _timer?.cancel();
+      super.dispose();
     }
+
+    Future<void> _fetchData() async {
+        final result = await _api.fetchAiAnalysis();
+        setState(() => _aiStatus = result['ai_analysis']['status'] );
+    } 
 
     @override 
     Widget build(BuildContext context) {
@@ -87,11 +76,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             decoration: BoxDecoration(
                                 boxShadow: [
                                     BoxShadow(
-                                        color: logs[0]['ai_analysis']['status'] == 'OPTIMAL' ? 
+                                        color: _aiStatus == 'OPTIMAL' ? 
                                             Colors.white70 : 
-                                            logs[0]['ai_analysis']['status'] == 'WARNING' ? 
+                                            _aiStatus == 'WARNING' ? 
                                             Colors.yellow.withAlpha(200) : 
-                                            logs[0]['ai_analysis']['status'] == 'CRITICAL'
+                                            _aiStatus == 'CRITICAL'
                                             ? Colors.red.withAlpha(200) : Colors.white12,
                                         spreadRadius: 0.25,
                                         blurRadius: 4,
@@ -99,24 +88,24 @@ class _HomeScreenState extends State<HomeScreen> {
                                     )
                                 ],
                                 borderRadius: BorderRadius.circular(12.0),
-                                color: logs[0]['ai_analysis']['status'] == 'OPTIMAL' ? 
+                                color: _aiStatus == 'OPTIMAL' ? 
                                     Colors.white70 : 
-                                    logs[0]['ai_analysis']['status'] == 'WARNING' ? 
+                                    _aiStatus == 'WARNING' ? 
                                     Colors.yellow : 
-                                    logs[0]['ai_analysis']['status'] == 'CRITICAL'
+                                    _aiStatus == 'CRITICAL'
                                     ? Colors.red : Colors.white12,
                             ),
                             padding: EdgeInsets.all(defaultPadding /2),
                             alignment: Alignment.center,
                             child: Text(
-                                'Status Biodigester : ${logs[0]['ai_analysis']['status']}',
+                                'Status Biodigester : $_aiStatus',
                                 style: TextStyle(
                                     fontWeight: FontWeight.w700,
-                                    color: logs[0]['ai_analysis']['status'] == 'OPTIMAL' ? 
+                                    color: _aiStatus == 'OPTIMAL' ? 
                                         Colors.black87 : 
-                                        logs[0]['ai_analysis']['status'] == 'WARNING' ? 
+                                        _aiStatus == 'WARNING' ? 
                                         Colors.black54 : 
-                                        logs[0]['ai_analysis']['status'] == 'CRITICAL'
+                                        _aiStatus == 'CRITICAL'
                                         ? Colors.black54 : Colors.white,
                                 ),
                             ),
@@ -124,38 +113,36 @@ class _HomeScreenState extends State<HomeScreen> {
                         Row(
                             spacing: defaultPadding,
                             children: [
-                                CardRounded(
-                                    height: 80.0,
-                                    width: 162.0,
-                                    child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        children: [
-                                            Text(
-                                                "Anomali Utama",
-                                                style: TextStyle(
-                                                    fontSize: 12.0,
-                                                    fontWeight: FontWeight.w300
+                                GestureDetector(
+                                    onTap : () { handleOnRaw(context); },
+                                    child: CardRounded(
+                                        height: 80.0,
+                                        width: 162.0,
+                                        child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                                Text(
+                                                    "Lihat Data Mentah",
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                        fontSize: 16.0,
+                                                        fontWeight: FontWeight.w600,
+                                                    ),
                                                 ),
-                                            ),
-                                            Text(
-                                                "-",
-                                                style: TextStyle(
-                                                    fontSize: 18.0,
-                                                    fontWeight: FontWeight.w600
-                                                ),
-                                            ),
-                                        ]
+                                            ]
+                                        )
                                     )
                                 ),
                                 GestureDetector(
-                                    onTap: () { handleOnTap(context, logs[0]['ai_analysis']['status'], logs[0]['ai_analysis']['diagnostic_reasoning']); },
+                                    onTap: () { handleOnTap(context); },
                                     child: CardRounded(
                                         height: 80.0,
                                         width: 165.0,
                                         child: Text(
                                             "Analisis kondisi biodigester",
                                             style: TextStyle(
-                                                fontSize: 16.0
+                                                fontSize: 16.0,
+                                                fontWeight: FontWeight.w600,
                                                 ),
                                             textAlign: TextAlign.center,
                                         )
@@ -173,9 +160,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 padding: EdgeInsets.fromLTRB(defaultPadding*1.5, 0, defaultPadding*1.5, 0),
                                 height: 200.0,
                                 child: KdGaugeView(
+                                    key: _gaugeKey,
                                     minSpeed: 0,
                                     maxSpeed: 100,
-                                    speed: 100,
+                                    speed: _fuel,
                                     animate: true,
                                     gaugeWidth: 28.0,
                                     duration: Duration(seconds: 5),
@@ -189,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         color: Colors.white,
                                         fontWeight: FontWeight.w700,
                                     ),
-                                    unitOfMeasurement: "Fuel Left (%)",
+                                    unitOfMeasurement: "Sisa Gas (%)",
                                     alertSpeedArray: [16.5, 50, 83.5],
                                     alertColorArray: [Colors.red, Colors.orange, Colors.green],
                                 )
@@ -197,21 +185,23 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         GestureDetector(
                             onTap : () async {
-                                isOn = !isOn;
-                                if (isOn)
-                                    { DatabaseService().create(path: '/state', data: {'toggle':1}); }
-                                else 
-                                    { DatabaseService().create(path: '/state', data: {'toggle':0}); }
+                                // isOn = !isOn;
+                                // if (isOn)
+                                //     { DatabaseService().create(path: '/state', data: {'toggle':1}); }
+                                // else 
+                                //     { DatabaseService().create(path: '/state', data: {'toggle':0}); }
                             },
                             child: Container (
 
                                 padding: EdgeInsets.all(defaultPadding),
                                 decoration: BoxDecoration(
-                                    color: isOn ? Colors.green : Colors.red, 
+                                    // color: isOn ? Colors.green : Colors.red, 
+                                    color : Colors.red,
                                     borderRadius: BorderRadius.circular(12.0),
                                     boxShadow: [
                                         BoxShadow(
-                                            color: isOn ? Colors.green.withAlpha(200) : Colors.red.withAlpha(200) ,
+                                            // color: isOn ? Colors.green.withAlpha(200) : Colors.red.withAlpha(200) ,
+                                            color : Colors.red.withAlpha(200),
                                             spreadRadius: 0.25,
                                             blurRadius: 4,
                                             offset: const Offset(0, 2),
@@ -222,7 +212,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                         Text(
-                                            isOn ? "Matikan Biodigester" : "Nyalakan Biodigester",
+                                            // isOn ? "Matikan Biodigester" : "Nyalakan Biodigester",
+                                            "Nyalakan Biodigester",
                                             style: TextStyle(
                                                 fontWeight: FontWeight.w600
                                             ),
@@ -242,8 +233,11 @@ class _HomeScreenState extends State<HomeScreen> {
         );
     }
 
-    handleOnTap(BuildContext context, String status, String diagnosis) {
-        Navigator.pushNamed(context, answerScreen, arguments: { "status" : status, "diagnosis" : diagnosis });
+    handleOnTap(BuildContext context) {
+        Navigator.pushNamed(context, answerScreen);
     }
 
+    handleOnRaw(BuildContext context) {
+        Navigator.pushNamed(context, detailScreen);
+    }
 }

@@ -1,11 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:pbl_biodigester/app/api_service.dart';
 import 'package:pbl_biodigester/models/card_rounded.dart';
 
-class AnswerScreen extends StatelessWidget {
-    final String status;
-    final String diagnosis;
+class AnswerScreen extends StatefulWidget {
 
-    const AnswerScreen(this.status, this.diagnosis, {super.key});
+    const AnswerScreen({super.key});
+
+    @override
+    State<AnswerScreen> createState() => _AnswerScreenState();
+}
+
+class _AnswerScreenState extends State<AnswerScreen> {
+    final ApiService _api = ApiService();
+    String _status = "";
+    String _diagnosis = "";
+
+    @override
+    void initState() {
+        super.initState();
+        _initAI();
+    }
+
+    Future<void> _initAI() async {
+        final result = await _api.fetchAiAnalysis();
+        setState(() { 
+            _status = result['ai_analysis']['status'];
+            _diagnosis = result['ai_analysis']['diagnostic_reasoning']; // OPTIMAL, WARNING, CRITICAL
+        });
+    }
 
     @override
     Widget build(BuildContext context) {
@@ -26,7 +48,7 @@ class AnswerScreen extends StatelessWidget {
                                     width: 0.75,
                                 )
                             ),
-                            child: Text("STATUS BIODIGESTER : $status")
+                            child: Text("STATUS BIODIGESTER : $_status")
                         ),
                         CardRounded(
                             width: double.infinity,
@@ -35,7 +57,7 @@ class AnswerScreen extends StatelessWidget {
                                 spacing: 12,
                                 children: [
                                     Text("Hasil Diagnosis"),
-                                    Text(diagnosis),
+                                    Text(_diagnosis),
                                 ]
                             )
                         )

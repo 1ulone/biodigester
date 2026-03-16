@@ -1,6 +1,19 @@
 version: '3.8'
 
 services:
+  db:
+    image: postgres:15
+    container_name: bio_db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: biodigester
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
   mosquitto:
     image: eclipse-mosquitto:latest
     container_name: mqtt_broker
@@ -16,10 +29,12 @@ services:
     ports:
       - "8000:8000"
     depends_on:
+      - db
       - mosquitto
     environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/biodigester
       - GROQ_API_KEY=${GROQ_API_KEY}
-      - FIREBASE_DB_URL=${FIREBASE_DB_URL}
-    volumes:
-      - ./serviceAccountKey.json:/app/serviceAccountKey.json
     restart: unless-stopped
+
+volumes:
+  postgres_data:
